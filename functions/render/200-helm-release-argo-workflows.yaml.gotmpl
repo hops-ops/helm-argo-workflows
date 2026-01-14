@@ -1,0 +1,46 @@
+# code: language=yaml
+#
+# Helm release for Argo Workflows
+#
+# Argo Workflows provides:
+# - Kubernetes-native workflow orchestration
+# - DAG and step-based workflow definitions
+# - CI/CD pipeline automation
+# - Data processing and ML workflow management
+#
+
+{{- $aw := $state.argoWorkflows }}
+
+---
+apiVersion: helm.m.crossplane.io/v1beta1
+kind: Release
+metadata:
+  name: {{ $aw.releaseName }}
+  annotations:
+    {{ setResourceNameAnnotation "helm-release-argo-workflows" }}
+  labels: {{ $aw.labels | toJson }}
+spec:
+  managementPolicies: {{ $aw.managementPolicies | toJson }}
+  forProvider:
+    chart:
+      name: argo-workflows
+      repository: https://argoproj.github.io/argo-helm
+      version: "0.46.4"
+    namespace: {{ $aw.namespace }}
+    {{- if $aw.overrideAllValues }}
+    values:
+      {{- toYaml $aw.overrideAllValues | nindent 6 }}
+    {{- else }}
+    values:
+      fullnameOverride: argo-workflows
+      nameOverride: argo-workflows
+      crds:
+        install: true
+      {{- if $aw.values }}
+      {{- toYaml $aw.values | nindent 6 }}
+      {{- end }}
+    {{- end }}
+  rollbackLimit: 3
+  providerConfigRef:
+    name: {{ $aw.providerConfigRef.name }}
+    kind: {{ $aw.providerConfigRef.kind }}
