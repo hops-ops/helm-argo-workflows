@@ -32,8 +32,6 @@ spec:
       {{- toYaml $aw.overrideAllValues | nindent 6 }}
     {{- else }}
     values:
-      fullnameOverride: argo-workflows
-      nameOverride: argo-workflows
       crds:
         install: true
       {{- if $aw.values }}
